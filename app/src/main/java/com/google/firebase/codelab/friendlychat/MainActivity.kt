@@ -18,6 +18,7 @@ package com.google.firebase.codelab.friendlychat
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ProgressBar
@@ -156,7 +157,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun putImageInStorage(storageReference: StorageReference, uri: Uri, key: String?) {
         // Upload the image to Cloud Storage
-        // TODO: implement
+        storageReference.putFile(uri)
+            .addOnSuccessListener(this) {
+                taskSnapshot ->
+                taskSnapshot.metadata!!.reference!!.downloadUrl
+                    .addOnSuccessListener { uri ->
+                        val friendlyMessage = FriendlyMessage(null, getUserName(), getPhotoUrl(), uri.toString())
+                        db.reference.child(MESSAGES_CHILD).child(key!!).setValue(friendlyMessage)
+                    }
+            }
+            .addOnFailureListener(this) {e-> Log.w(TAG, "Image upload failed", e)
+            }
     }
 
     private fun signOut() {
